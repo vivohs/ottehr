@@ -16,8 +16,12 @@ import {
 import { DateTime } from 'luxon';
 import {
   EncounterVirtualServiceExtension,
+  EhrClient,
+  EhrProvider,
+  createEhrClient,
   findQuestionnaireResponseItemLinkId,
   getSecret,
+  getOptionalSecret,
   getTimezone,
   pickFirstValueFromAnswerItem,
   PRIVATE_EXTENSION_BASE_URL,
@@ -38,6 +42,19 @@ export function createOystehrClient(token: string, secrets: Secrets | null): Oys
     projectApiUrl: PROJECT_API,
   };
   return new Oystehr(CLIENT_CONFIG);
+}
+
+export function createBackendEhrClient(token: string, secrets: Secrets | null): EhrClient {
+  const provider = (getOptionalSecret('EHR_PROVIDER', secrets) ?? 'oystehr') as EhrProvider;
+  const fhirApiUrl = getSecret(SecretsKeys.FHIR_API, secrets).replace(/\/r4/g, '');
+  const projectApiUrl = getOptionalSecret(SecretsKeys.PROJECT_API, secrets);
+
+  return createEhrClient({
+    provider,
+    accessToken: token,
+    fhirApiUrl,
+    projectApiUrl,
+  });
 }
 
 export interface SMSModel {
